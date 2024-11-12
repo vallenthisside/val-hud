@@ -1,0 +1,286 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Saira", sans-serif;
+}
+
+#money-hud {
+    position: fixed;
+    bottom: 14%;
+    left: 19%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    transition: left 0.3s ease;
+    opacity: 1;
+}
+
+#hud {
+    position: absolute;
+    bottom: 4%;
+    left: 5%;
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    transition: left 0.3s ease;
+}
+
+
+#petrol-text, #armor-text, #health-text {
+    font-weight: bold;   
+    filter: brightness(100%) drop-shadow(0px 0px 2px rgb(0, 0, 0));
+    opacity:1;
+}
+
+.top-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    filter: brightness(100%) drop-shadow(0px 0px 2px rgb(0, 0, 0));
+}
+
+.icon-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-right: 8px;
+    
+}
+
+.top-icon {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 20px;
+    height: 20px;
+    filter: brightness(100%) drop-shadow(0px 0px 2px rgb(0, 0, 0));
+}
+
+.circle-svg {
+    width: 40px;
+    height: 40px;
+}
+
+.circle-svg path {
+    animation: circleleftanimation 10s infinite linear;
+    transform-origin: 50% 50%;
+}
+
+@keyframes circleleftanimation {
+0% {
+    transform: rotate(0deg);
+}
+100% {
+    transform: rotate(-360deg);
+}
+}
+
+.bottom-row {
+    display: flex;
+    flex-direction: column;
+    width: 180px;
+}
+
+.bar {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+    filter: brightness(100%) drop-shadow(0px 0px 2px rgb(0, 0, 0));
+}
+
+.icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    filter: brightness(100%) drop-shadow(0px 0px 2px rgb(0, 0, 0));
+}
+
+.armor-icon {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    top: 2px;
+    margin-right: 8px;
+    filter: brightness(100%) drop-shadow(0px 0px 2px rgb(0, 0, 0));
+}
+
+#cash-text, #bank-text {
+    font-size: 18px;
+    font-weight: bold;
+    filter: brightness(100%) drop-shadow(0px 0px 2px rgb(0, 0, 0));
+}
+
+.money-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    position: relative;
+    top : 2px;
+    left: 5px;
+    filter: brightness(100%) drop-shadow(0px 0px 2px rgb(0, 0, 0));
+}
+
+.progress {
+    background-color: #3a3a3a;
+    height: 8px;
+    border-radius: 4px;
+    flex: 1;
+    position: relative;
+    margin-right: 8px;
+}
+
+.progress-inner {
+    background-color: #ffffff;
+    height: 100%;
+    border-radius: 4px;
+    width: var(--progress, 0%);
+}
+
+span {
+    color: white;
+    font-size: 12px;
+}
+
+/* Veh Hud */
+
+#veh-hud {
+    position: fixed;
+    bottom: 3%;
+    right: 2%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    filter: brightness(100%) drop-shadow(0px 0px 2px rgb(0, 0, 0));
+    display: none;
+}
+
+.veh-bottom-row {
+    display: flex;
+    flex-direction: column;
+    width: 180px;
+}
+
+.veh-bar {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.veh-speed {
+    margin-top: 10px;
+    text-align: center;
+    font-weight: bold;
+    color: white;
+    
+}
+
+#speed-text {
+    position: relative;
+    font-size: 50px;
+    left: 2px;
+    filter: brightness(100%) drop-shadow(0px 0px 2px rgb(0, 0, 0));
+}
+
+#speed-mph {
+    position: relative;
+    bottom: 30px;
+    filter: brightness(100%) drop-shadow(0px 0px 2px rgb(0, 0, 0));
+}
+
+.veh-progress {
+    background-color: #3a3a3a;
+    height: 8px;
+    border-radius: 4px;
+    flex: 1;
+    position: relative;
+    margin-right: 8px;
+}
+
+.veh-progress-inner {
+    background-color: #ffffff;
+    height: 100%;
+    border-radius: 4px;
+}
+
+.veh-icon-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin: 0 8px;
+    top: 77px;
+    right: 12px;
+}
+
+.veh-icon-container-2 {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin: 0 8px;
+    top: 80px;
+    right: 12px;
+}
+
+.veh-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    filter: brightness(100%) drop-shadow(0px 0px 2px rgb(0, 0, 0));
+}
+
+.indication-icon {
+    position: absolute;
+    top: 8px;
+    left: 7px;
+    width: 15px;
+    height: 15px;
+    filter: brightness(100%) drop-shadow(0px 0px 2px rgb(0, 0, 0));
+}
+
+.veh-circle-svg {
+    width: 30px;
+    height: 30px;
+}
+
+object {
+    width: 40px;
+    height: 40px;
+}
+
+.location-ui {
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    filter: brightness(100%) drop-shadow(0px 0px 2px rgb(0, 0, 0));
+}
+
+.direction, .street, .city {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.direction {
+    color: #ffffff;
+}
+
+.street {
+    color: #ffffff;
+}
+
+.city {
+    color: #ffffff;
+}
+
+#location-hud {
+    position: absolute;
+    bottom: 21%;
+    left: 0.4%;
+    display: none;
+}

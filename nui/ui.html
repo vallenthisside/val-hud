@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Saira:wght@100;400;700;900&display=swap" rel="stylesheet">
+    <title>HUD</title>
+</head>
+<body>
+    <div id="hud">
+        <!-- Circular indicators for the top row (Hunger, Thirst, Stress, etc.) -->
+        <div class="top-row">
+            <div class="icon-container">
+                <img src="img/hunger.png" alt="Hunger" class="top-icon"/>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" class="circle-svg">
+                    <circle cx="60" cy="60" r="50" stroke="#FFFFFF05" stroke-width="8" fill="none"/>
+                    <path id="hunger-path" fill="none" stroke="#FFFF00" stroke-width="8"/>
+                </svg>
+            </div>
+            <div class="icon-container">
+                <img src="img/thirst.png" alt="Thirst" class="top-icon"/>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" class="circle-svg">
+                    <circle cx="60" cy="60" r="50" stroke="#00FFFF05" stroke-width="8" fill="none"/>
+                    <path id="thirst-path" fill="none" stroke="#00FFFF" stroke-width="8"/>
+                </svg>
+            </div>
+            <div class="icon-container">
+                <img src="img/stress.png" alt="Stress" class="top-icon"/>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" class="circle-svg">
+                    <circle cx="60" cy="60" r="50" stroke="#FFFFFF05" stroke-width="8" fill="none"/>
+                    <path id="stress-path" fill="none" stroke="#e92626" stroke-width="8"/>
+                </svg>
+            </div>
+            <div class="icon-container">
+                <img src="img/oxygen.png" alt="Oxygen" class="top-icon"/>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" class="circle-svg">
+                    <circle cx="60" cy="60" r="50" stroke="#FFFFFF05" stroke-width="8" fill="none"/>
+                    <path id="oxygen-path" fill="none" stroke="#FFFFFF" stroke-width="8"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Health and Armor bars -->
+        <div class="bottom-row">
+            <div class="bar">
+                <img src="img/heart.png" alt="Health" class="icon"/>
+                <div class="progress" id="health-bar">
+                    <div class="progress-inner"></div>
+                </div>
+                <span id="health-text">60%</span>
+            </div>
+            <div class="bar">
+                <img src="img/shield.png" alt="Armor" class="armor-icon"/>
+                <div class="progress" id="armor-bar">
+                    <div class="progress-inner"></div>
+                </div>
+                <span id="armor-text">40%</span>
+            </div>
+        </div>
+
+        <!-- Vehicle HUD -->
+        <div id="veh-hud">
+            <div class="veh-bottom-row">
+                <div class="veh-icon-container">
+                    <img src="img/engine.png" class="indication-icon"/>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" class="veh-circle-svg">
+                        <circle cx="60" cy="60" r="50" stroke="#00FFFF" stroke-width="8" fill="none"/>
+                        <path id="engine-path" fill="none" stroke="#00FFFF" stroke-width="8"/>
+                    </svg>
+                </div>
+                <div class="veh-icon-container-2">
+                    <img src="img/belt.png" class="indication-icon"/>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" class="veh-circle-svg">
+                        <circle cx="60" cy="60" r="50" stroke="#00FFFF" stroke-width="8" fill="none"/>
+                        <path id="belt-path" fill="none" stroke="#00FFFF" stroke-width="8"/>
+                    </svg>
+                </div>
+                <div class="veh-speed">
+                    <span id="speed-text">400</span>
+                    <span id="speed-mph">MPH</span>
+                </div>
+                <div class="veh-bar">
+                    <img src="img/speed.png" alt="RPM" class="veh-icon"/>
+                    <div class="veh-progress" id="rpm-bar">
+                        <div class="veh-progress-inner"></div>
+                    </div>
+                </div>
+                <div class="veh-bar">
+                    <img src="img/fuel.png" alt="Petrol" class="veh-icon"/>
+                    <div class="veh-progress" id="petrol-bar">
+                        <div class="veh-progress-inner"></div>
+                    </div>
+                    <span id="petrol-text">40%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Money HUD -->
+        <div id="money-hud">
+            <div class="money-cash">
+                <img src="img/cash.png" class="money-icon"/>
+                <span id="cash-text">$60</span>
+            </div>
+            <div class="money-bank">
+                <img src="img/bank.png" class="money-icon"/>
+                <span id="bank-text">$60</span>
+            </div>
+        </div>
+
+    </div>
+    <div id="location-hud">
+        <div class="location-ui">
+            <span class="direction">N |</span>
+            <span class="street">Grove Street | </span>
+            <span class="city">Los Santos</span>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
