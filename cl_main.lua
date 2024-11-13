@@ -79,7 +79,7 @@ local function getCardinalDirection(heading)
 end
 
 local function hasHarness() --harness
-    local ped = cache.ped
+    local ped = PlayerPedId()
     if not IsPedInAnyVehicle(ped, false) then return end
 
     local _harness = false
@@ -336,7 +336,7 @@ CreateThread(function()
     while true do
         Wait(15000)
         if LocalPlayer.state.isLoggedIn then
-            local ped = cache.ped
+            local ped = PlayerPedId()
             if IsPedInAnyVehicle(ped, false) then
                 hasHarness()
                 local veh = GetEntityModel(GetVehiclePedIsIn(ped, false))
