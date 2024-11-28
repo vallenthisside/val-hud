@@ -307,13 +307,13 @@ RegisterNetEvent("hud:client:LoadMap", function()
     AddReplaceTexture("platform:/textures/graphics", "radarmask1g", "squaremap", "radarmasksm")
     -- Adjust Y-position to move the minimap down
     -- Increase the fourth parameter to move it down
-    SetMinimapComponentPosition("minimap", "L", "B", 0.0 + minimapOffset, -0.037, 0.1638, 0.183)
+    SetMinimapComponentPosition("minimap", "L", "B", 0.0, -0.012, 0.1638, 0.183) -- Main minimap
 
     -- icons within map
-    SetMinimapComponentPosition("minimap_mask", "L", "B", 0.0 + minimapOffset, 0.01, 0.128, 0.20)
+    SetMinimapComponentPosition("minimap_mask", "L", "B", 0.0, 0.02, 0.128, 0.20) -- Minimap mask
 
     -- Adjust Y-position to move the blur down
-    SetMinimapComponentPosition('minimap_blur', 'L', 'B', -0.011 + minimapOffset, 0.059, 0.265, 0.295)
+    SetMinimapComponentPosition("minimap_blur", "L", "B", -0.011, 0.059, 0.265, 0.295) -- Blur effect
     SetBlipAlpha(GetNorthRadarBlip(), 0)
     SetRadarBigmapEnabled(true, false)
     SetMinimapClipType(1)
