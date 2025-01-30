@@ -9,13 +9,16 @@ local bankAmount = 0
 
 -- Display radar and zoom level adjustments
 CreateThread(function()
-    while true do
-        Citizen.Wait(50)
-        DisplayRadar(IsPedInAnyVehicle(PlayerPedId(), true))
-        if IsPedInAnyVehicle(PlayerPedId(), true) then
-            SetRadarZoom(1000)
-        end
-    end
+	while not LocalPlayer.state.isLoggedIn do
+		Wait(500)
+	end
+	
+	SetRadarZoom(1000)
+
+	while LocalPlayer.state.isLoggedIn do
+		Wait(750)
+		DisplayRadar(IsPedInAnyVehicle(PlayerPedId(), false))
+	end
 end)
 
 -- Event handlers for updating needs and seatbelt status
