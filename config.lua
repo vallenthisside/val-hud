@@ -1,5 +1,6 @@
 Config = {}
 
+Config.FrameWork = 'esx' -- qb | esx
 Config.MinimumStress = 80         -- Minimum Stress Level For Screen Shaking
 Config.MinimumSpeedUnbuckled = 50 -- Going Over This Speed Unbuckled Will Cause Stress
 Config.MinimumSpeed = 120         -- Going Over This Speed While Buckled Will Cause Stress

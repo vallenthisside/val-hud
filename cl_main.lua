@@ -1,11 +1,18 @@
-local QBCore = exports['qb-core']:GetCoreObject()
+if Config.FrameWork == 'qb' then
+    QBCore = exports['qb-core']:GetCoreObject()
+else
+    ESX = exports["es_extended"]:getSharedObject()
+end
 
 local thirst, stress, hunger, cash, bank, oxygen = 100, 0, 100, 100, 100, 100
 local showSeatbelt, seatbeltOn, rpm, fuel, enginehealth = false, false, 100, 20, 300
 local isLoggedIn = false
+local lolbelt = false
 local harness = 0
 local cashAmount = 0
 local bankAmount = 0
+local nomfuel = 10
+local vv
 
 -- Display radar and zoom level adjustments
 CreateThread(function()
@@ -35,21 +42,61 @@ RegisterNetEvent('seatbelt:client:ToggleSeatbelt', function()
     seatbeltOn = not seatbeltOn
 end)
 
+
+
+AddEventHandler("esx_status:onTick", function(data)
+    for i = 1, #data do
+        if data[i].name == "thirst" then
+            thirst = math.floor(data[i].percent)
+        end
+        if data[i].name == "hunger" then
+            hunger = math.floor(data[i].percent)
+        end
+    end
+end)
+
 -- Initialize HUD visibility
 
-RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
-    isLoggedIn = true
-    SendNUIMessage({ type = 'showhud', show = true })
-    TriggerEvent('hud:client:minimap')
-end)
+if Config.FrameWork == 'qb' then
+    RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
+        isLoggedIn = true
+        SendNUIMessage({ type = 'showhud', show = true })
+        TriggerEvent('hud:client:minimap')
+    end)
+else
+    RegisterNetEvent('esx:playerLoaded')
+    AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
+        -- ESX.PlayerData = xPlayer
 
--- Event handler for player unload
-RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
-    Citizen.Wait(1000)
-    PlayerData = {}
-    isLoggedIn = false
-    SendNUIMessage({ type = 'hidehud', show = false })
-end)
+        isLoggedIn = true
+        SendNUIMessage({ type = 'showhud', show = true })
+        TriggerEvent('hud:client:minimap')
+    end)
+end
+
+if Config.FrameWork == 'qb' then
+    -- Event handler for player unload
+    RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
+        Citizen.Wait(1000)
+        PlayerData = {}
+        isLoggedIn = false
+        SendNUIMessage({ type = 'hidehud', show = false })
+    end)
+else
+    -- CreateThread(function()
+    --     while true do
+    --         local sleep = 2000 -- Make the Thread Sleep if doing nothing
+    --         local IsLoaded = ESX.IsPlayerLoaded()
+    --         if not IsLoaded then
+    --             Citizen.Wait(1000)
+    --             PlayerData = {}
+    --             isLoggedIn = false
+    --             SendNUIMessage({ type = 'hidehud', show = false })
+    --         end
+    --         Wait(sleep)
+    --     end
+    -- end)
+end
 
 RegisterNetEvent('hud:client:ShowAccounts', function(type, amount)
     if type == 'cash' then
@@ -59,20 +106,53 @@ RegisterNetEvent('hud:client:ShowAccounts', function(type, amount)
     end
 end)
 
-RegisterNetEvent('hud:client:OnMoneyChange', function(type, amount, isMinus)
-    cashAmount = QBCore.Functions.GetPlayerData().money['cash']
-    bankAmount = QBCore.Functions.GetPlayerData().money['bank']
-    if type == 'cash' then
-        lib.notify({ description = (isMinus and "-" or "+") .. "$" .. amount .. " (Bank: $" .. cashAmount .. ")", icon = 'dollar', type = 'success' })
-    else
-        lib.notify({ description = (isMinus and "-" or "+") .. "$" .. amount .. " (Bank: $" .. bankAmount .. ")", icon = 'dollar', type = 'success' })
-    end
-end)
+if Config.FrameWork == 'qb' then
+    RegisterNetEvent('hud:client:OnMoneyChange', function(type, amount, isMinus)
+        cashAmount = QBCore.Functions.GetPlayerData().money['cash']
+        bankAmount = QBCore.Functions.GetPlayerData().money['bank']
+        if type == 'cash' then
+            lib.notify({
+                description = (isMinus and "-" or "+") .. "$" .. amount .. " (Bank: $" .. cashAmount .. ")",
+                icon =
+                'dollar',
+                type = 'success'
+            })
+        else
+            lib.notify({
+                description = (isMinus and "-" or "+") .. "$" .. amount .. " (Bank: $" .. bankAmount .. ")",
+                icon =
+                'dollar',
+                type = 'success'
+            })
+        end
+    end)
+else
+    RegisterNetEvent('hud:client:OnMoneyChange', function(type, amount, isMinus)
+        local playerData = ESX.GetPlayerData()
+        cashAmount = playerData.accounts["money"]
+        bankAmount = playerData.accounts["bank"]
+        if type == 'cash' then
+            lib.notify({
+                description = (isMinus and "-" or "+") .. "$" .. amount .. " (Bank: $" .. cashAmount .. ")",
+                icon =
+                'dollar',
+                type = 'success'
+            })
+        else
+            lib.notify({
+                description = (isMinus and "-" or "+") .. "$" .. amount .. " (Bank: $" .. bankAmount .. ")",
+                icon =
+                'dollar',
+                type = 'success'
+            })
+        end
+    end)
+end
 
 -- Main thread for updating HUD elements
 
 local function getCardinalDirection(heading)
-    local directions = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"}
+    local directions = { "N", "NE", "E", "SE", "S", "SW", "W", "NW" }
     heading = (heading % 360 + 360) % 360
     local index = math.floor((heading + 22.5) / 45) % 8
     return directions[index + 1]
@@ -96,50 +176,99 @@ end
 
 -- Stress Gain
 
-CreateThread(function() -- Speeding
-    while true do
-        if LocalPlayer.state.isLoggedIn then
-            local ped = PlayerPedId()
-            if IsPedInAnyVehicle(ped, false) then
-                local veh = GetVehiclePedIsIn(ped, false)
-                local vehClass = GetVehicleClass(veh)
-                local speed = GetEntitySpeed(veh) * 2.23694
-                local vehHash = GetEntityModel(veh)
-                if Config.VehClassStress[tostring(vehClass)] and not Config.WhitelistedVehicles[vehHash] then
-                    local stressSpeed
-                    if vehClass == 8 then -- Motorcycle exception for seatbelt
-                        stressSpeed = Config.MinimumSpeed
-                    else
-                        stressSpeed = seatbeltOn and Config.MinimumSpeed or Config.MinimumSpeedUnbuckled
-                    end
-                    if speed >= stressSpeed then
-                        TriggerServerEvent('hud:server:GainStress', math.random(1, 3))
+if Config.FrameWork == 'qb' then
+    CreateThread(function() -- Speeding
+        while true do
+            if LocalPlayer.state.isLoggedIn then
+                local ped = PlayerPedId()
+                if IsPedInAnyVehicle(ped, false) then
+                    local veh = GetVehiclePedIsIn(ped, false)
+                    local vehClass = GetVehicleClass(veh)
+                    local speed = GetEntitySpeed(veh) * 2.23694
+                    local vehHash = GetEntityModel(veh)
+                    if Config.VehClassStress[tostring(vehClass)] and not Config.WhitelistedVehicles[vehHash] then
+                        local stressSpeed
+                        if vehClass == 8 then -- Motorcycle exception for seatbelt
+                            stressSpeed = Config.MinimumSpeed
+                        else
+                            stressSpeed = seatbeltOn and Config.MinimumSpeed or Config.MinimumSpeedUnbuckled
+                        end
+                        if speed >= stressSpeed then
+                            TriggerServerEvent('hud:server:GainStress', math.random(1, 3))
+                        end
                     end
                 end
             end
+            Wait(10000)
         end
-        Wait(10000)
-    end
-end)
+    end)
+else
+    CreateThread(function() -- Speeding
+        while true do
+            if isLoggedIn then
+                local ped = PlayerPedId()
+                if IsPedInAnyVehicle(ped, false) then
+                    local veh = GetVehiclePedIsIn(ped, false)
+                    local vehClass = GetVehicleClass(veh)
+                    local speed = GetEntitySpeed(veh) * 2.23694
+                    local vehHash = GetEntityModel(veh)
+                    if Config.VehClassStress[tostring(vehClass)] and not Config.WhitelistedVehicles[vehHash] then
+                        local stressSpeed
+                        if vehClass == 8 then -- Motorcycle exception for seatbelt
+                            stressSpeed = Config.MinimumSpeed
+                        else
+                            stressSpeed = seatbeltOn and Config.MinimumSpeed or Config.MinimumSpeedUnbuckled
+                        end
+                        if speed >= stressSpeed then
+                            TriggerServerEvent('hud:server:GainStress', math.random(1, 3))
+                        end
+                    end
+                end
+            end
+            Wait(10000)
+        end
+    end)
+end
 
-CreateThread(function() -- Shooting
-    while true do
-        if LocalPlayer.state.isLoggedIn then
-            local ped = PlayerPedId()
-            local weapon = GetSelectedPedWeapon(ped)
-            if weapon ~= `WEAPON_UNARMED` then
-                if IsPedShooting(ped) and not Config.WhitelistedWeaponStress[weapon] then
-                    if math.random() < Config.StressChance then
-                        TriggerServerEvent('hud:server:GainStress', math.random(1, 3))
+if Config.FrameWork == 'qb' then
+    CreateThread(function() -- Shooting
+        while true do
+            if LocalPlayer.state.isLoggedIn then
+                local ped = PlayerPedId()
+                local weapon = GetSelectedPedWeapon(ped)
+                if weapon ~= `WEAPON_UNARMED` then
+                    if IsPedShooting(ped) and not Config.WhitelistedWeaponStress[weapon] then
+                        if math.random() < Config.StressChance then
+                            TriggerServerEvent('hud:server:GainStress', math.random(1, 3))
+                        end
                     end
+                else
+                    Wait(1000)
                 end
-            else
-                Wait(1000)
             end
+            Wait(0)
         end
-        Wait(0)
-    end
-end)
+    end)
+else
+    CreateThread(function() -- Shooting
+        while true do
+            if isLoggedIn then
+                local ped = PlayerPedId()
+                local weapon = GetSelectedPedWeapon(ped)
+                if weapon ~= `WEAPON_UNARMED` then
+                    if IsPedShooting(ped) and not Config.WhitelistedWeaponStress[weapon] then
+                        if math.random() < Config.StressChance then
+                            TriggerServerEvent('hud:server:GainStress', math.random(1, 3))
+                        end
+                    end
+                else
+                    Wait(1000)
+                end
+            end
+            Wait(0)
+        end
+    end)
+end
 
 -- Stress Screen Effects
 
@@ -174,7 +303,8 @@ CreateThread(function()
             TriggerScreenblurFadeOut(1000.0)
 
             if not IsPedRagdoll(ped) and IsPedOnFoot(ped) and not IsPedSwimming(ped) then
-                SetPedToRagdollWithFall(ped, RagdollTimeout, RagdollTimeout, 1, GetEntityForwardVector(ped), 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
+                SetPedToRagdollWithFall(ped, RagdollTimeout, RagdollTimeout, 1, GetEntityForwardVector(ped), 1.0, 0.0,
+                    0.0, 0.0, 0.0, 0.0, 0.0)
             end
 
             Wait(1000)
@@ -197,90 +327,204 @@ CreateThread(function()
     end
 end)
 
-CreateThread(function()
-    while true do
-        Citizen.Wait(50)
-        if isLoggedIn then
-            local playerPed = PlayerPedId()
-            local health = GetEntityHealth(playerPed) - 100
-            local armor = GetPedArmour(playerPed)
-            local player = PlayerPedId()
-            local playerId = PlayerId()
-            cash = QBCore.Functions.GetPlayerData().money["cash"]
-            bank = QBCore.Functions.GetPlayerData().money["bank"]
+if Config.FrameWork == 'qb' then
+    CreateThread(function()
+        while true do
+            Citizen.Wait(50)
+            if isLoggedIn then
+                local playerPed = PlayerPedId()
+                local health = GetEntityHealth(playerPed) - 100
+                local armor = GetPedArmour(playerPed)
+                local player = PlayerPedId()
+                local playerId = PlayerId()
+                cash = QBCore.Functions.GetPlayerData().money["cash"]
+                bank = QBCore.Functions.GetPlayerData().money["bank"]
 
-            local inVehicle = IsPedInAnyVehicle(playerPed, false)
-            local speed = 0
+                local inVehicle = IsPedInAnyVehicle(playerPed, false)
+                local speed = 0
 
-            if not IsEntityInWater(player) then
-                oxygen = 100 - GetPlayerSprintStaminaRemaining(playerId)
-            end
-            -- Oxygen
-            if IsEntityInWater(player) then
-                oxygen = GetPlayerUnderwaterTimeRemaining(playerId) * 10
-            end
+                if not IsEntityInWater(player) then
+                    oxygen = 100 - GetPlayerSprintStaminaRemaining(playerId)
+                end
+                -- Oxygen
+                if IsEntityInWater(player) then
+                    oxygen = GetPlayerUnderwaterTimeRemaining(playerId) * 10
+                end
 
-            if inVehicle then
-                local vehicle = GetVehiclePedIsIn(playerPed, false)
-                speed = GetEntitySpeed(vehicle) * 2.23694
-                rpm = GetVehicleCurrentRpm(vehicle) * 1000 / 10
-                fuel = exports["LegacyFuel"]:GetFuel(vehicle)
-                enginehealth = GetVehicleEngineHealth(vehicle) / 10
+                if inVehicle then
+                    local vehicle = GetVehiclePedIsIn(playerPed, false)
+                    speed = GetEntitySpeed(vehicle) * 2.23694
+                    rpm = GetVehicleCurrentRpm(vehicle) * 1000 / 10
+                    fuel = exports["LegacyFuel"]:GetFuel(vehicle)
+                    enginehealth = GetVehicleEngineHealth(vehicle) / 10
 
-                
 
-                -- Location update
-                local pos = GetEntityCoords(playerPed)
-                local heading = GetEntityHeading(playerPed)
-                local cardinalDirection = getCardinalDirection(heading) -- Convert heading to cardinal direction
-                local streetNameHash, crossingHash = GetStreetNameAtCoord(pos.x, pos.y, pos.z)
-                local streetName = GetStreetNameFromHashKey(streetNameHash)
-                local areaName = GetLabelText(GetNameOfZone(pos.x, pos.y, pos.z))
 
-                SendNUIMessage({
-                    type = 'updateLocation',
-                    heading = cardinalDirection, -- Use cardinal direction
-                    street = streetName,
-                    area = areaName,
-                    x = pos.x,
-                    y = pos.y,
-                    z = pos.z
-                })
-            end
+                    -- Location update
+                    local pos = GetEntityCoords(playerPed)
+                    local heading = GetEntityHeading(playerPed)
+                    local cardinalDirection = getCardinalDirection(heading) -- Convert heading to cardinal direction
+                    local streetNameHash, crossingHash = GetStreetNameAtCoord(pos.x, pos.y, pos.z)
+                    local streetName = GetStreetNameFromHashKey(streetNameHash)
+                    local areaName = GetLabelText(GetNameOfZone(pos.x, pos.y, pos.z))
 
-            -- Update HUD with vehicle and player information
-            SendNUIMessage({
-                type = 'updatehud',
-                health = health,
-                armor = armor,
-                oxygen = oxygen,
-                stress = stress,
-                hunger = hunger,
-                thirst = thirst,
-                cash = cash,
-                bank = bank,
-                speed = math.floor(speed), -- Ensure speed is an integer
-                belt = seatbeltOn,
-                rpm = rpm,
-                fuel = fuel,
-                harness = harness,
-                inVehicle = inVehicle,
-                engine = enginehealth
-            })
+                    SendNUIMessage({
+                        type = 'updateLocation',
+                        heading = cardinalDirection, -- Use cardinal direction
+                        street = streetName,
+                        area = areaName,
+                        x = pos.x,
+                        y = pos.y,
+                        z = pos.z
+                    })
+                end
 
-            -- Show or hide location HUD based on vehicle status
-            if inVehicle then
-                SendNUIMessage({
-                    type = 'showLocationHUD'
-                })
-            else
-                SendNUIMessage({
-                    type = 'hideLocationHUD'
-                })
+                -- Update HUD with vehicle and player information
+                if Config.FrameWork == 'qb' then
+                    SendNUIMessage({
+                        type = 'updatehud',
+                        health = health,
+                        armor = armor,
+                        oxygen = oxygen,
+                        stress = stress,
+                        hunger = hunger,
+                        thirst = thirst,
+                        cash = cash,
+                        bank = bank,
+                        speed = math.floor(speed), -- Ensure speed is an integer
+                        belt = seatbeltOn,
+                        rpm = rpm,
+                        fuel = fuel,
+                        harness = harness,
+                        inVehicle = inVehicle,
+                        engine = enginehealth
+                    })
+                else
+                    SendNUIMessage({
+                        type = 'updatehud',
+                        health = health,
+                        armor = armor,
+                        oxygen = oxygen,
+                        stress = stress,
+                        hunger = hunger,
+                        thirst = thirst,
+                        cash = cash,
+                        bank = bank,
+                        speed = math.floor(speed), -- Ensure speed is an integer
+                        belt = seatbeltOn,
+                        rpm = rpm,
+                        fuel = fuel,
+                        harness = harness,
+                        inVehicle = inVehicle,
+                        engine = enginehealth
+                    })
+                end
+                -- Show or hide location HUD based on vehicle status
+                if inVehicle then
+                    SendNUIMessage({
+                        type = 'showLocationHUD'
+                    })
+                else
+                    SendNUIMessage({
+                        type = 'hideLocationHUD'
+                    })
+                end
             end
         end
-    end
-end)
+    end)
+else
+    CreateThread(function()
+        while true do
+            Citizen.Wait(50)
+            if isLoggedIn then
+                local playerPed = PlayerPedId()
+                local health = GetEntityHealth(playerPed) - 100
+                local armor = GetPedArmour(playerPed)
+                local player = PlayerPedId()
+                local playerId = PlayerId()
+                local playerData = ESX.GetPlayerData()
+                cashAmount = playerData.accounts["money"]
+                bankAmount = playerData.accounts["bank"]
+
+                local inVehicle = IsPedInAnyVehicle(playerPed, false)
+                local speed = 0
+
+                if not IsEntityInWater(player) then
+                    oxygen = 100 - GetPlayerSprintStaminaRemaining(playerId)
+                end
+                -- Oxygen
+                if IsEntityInWater(player) then
+                    oxygen = GetPlayerUnderwaterTimeRemaining(playerId) * 10
+                end
+
+                if inVehicle then
+                    local vehicle = GetVehiclePedIsIn(playerPed, false)
+                    speed = GetEntitySpeed(vehicle) * 2.23694
+                    rpm = GetVehicleCurrentRpm(vehicle) * 1000 / 10
+                    fuel = Entity(vehicle).state.fuel
+                    enginehealth = GetVehicleEngineHealth(vehicle) / 10
+                    vv = vehicle
+
+                    lolbelt = exports['esx_cruisecontrol']:isSeatbeltOn()
+
+                    -- Location update
+                    local pos = GetEntityCoords(playerPed)
+                    local heading = GetEntityHeading(playerPed)
+                    local cardinalDirection = getCardinalDirection(heading) -- Convert heading to cardinal direction
+                    local streetNameHash, crossingHash = GetStreetNameAtCoord(pos.x, pos.y, pos.z)
+                    local streetName = GetStreetNameFromHashKey(streetNameHash)
+                    local areaName = GetLabelText(GetNameOfZone(pos.x, pos.y, pos.z))
+
+                    SendNUIMessage({
+                        type = 'updateLocation',
+                        heading = cardinalDirection, -- Use cardinal direction
+                        street = streetName,
+                        area = areaName,
+                        x = pos.x,
+                        y = pos.y,
+                        z = pos.z
+                    })
+                end
+
+                -- Update HUD with vehicle and player information
+
+                if inVehicle then
+                    nomfuel = ESX.Math.Round(GetVehicleFuelLevel(vv), 2)
+                else
+                    nomfuel = 10
+                end
+                SendNUIMessage({
+                    type = 'updatehud',
+                    health = health,
+                    armor = armor,
+                    oxygen = oxygen,
+                    stress = stress,
+                    hunger = hunger,
+                    thirst = thirst,
+                    cash = cash,
+                    bank = bank,
+                    speed = math.floor(speed), -- Ensure speed is an integer
+                    belt = lolbelt,
+                    rpm = rpm,
+                    fuel = nomfuel,
+                    inVehicle = inVehicle,
+                    engine = enginehealth
+                })
+
+                -- Show or hide location HUD based on vehicle status
+                if inVehicle then
+                    SendNUIMessage({
+                        type = 'showLocationHUD'
+                    })
+                else
+                    SendNUIMessage({
+                        type = 'hideLocationHUD'
+                    })
+                end
+            end
+        end
+    end)
+end
 
 RegisterNetEvent('hud:client:UpdateHarness', function(harnessHp) --harness
     hp = harnessHp
@@ -323,7 +567,7 @@ end)
 
 local function BlackBars()
     local screenW, screenH = GetScreenResolution()
-    local barHeight = screenH * 0.1  -- Adjust height as needed (10% of screen height)
+    local barHeight = screenH * 0.1 -- Adjust height as needed (10% of screen height)
 
     -- Top black bar
     DrawRect(0.5, -0.05 + (barHeight / screenH), 1.0, barHeight / screenH, 0, 0, 0, 255)
@@ -332,21 +576,39 @@ local function BlackBars()
     DrawRect(0.5, 1.05 - (barHeight / screenH), 1.0, barHeight / screenH, 0, 0, 0, 255)
 end
 
-CreateThread(function()
-    while true do
-        Wait(15000)
-        if LocalPlayer.state.isLoggedIn then
-            local ped = PlayerPedId()
-            if IsPedInAnyVehicle(ped, false) then
-                hasHarness()
-                local veh = GetEntityModel(GetVehiclePedIsIn(ped, false))
-                if seatbeltOn ~= true and IsThisModelACar(veh) then
-                    TriggerEvent("InteractSound_CL:PlayOnOne", "beltalarm", 0.6)
+
+if Config.FrameWork == 'qb' then
+    CreateThread(function()
+        while true do
+            Wait(15000)
+            if LocalPlayer.state.isLoggedIn then
+                local ped = PlayerPedId()
+                if IsPedInAnyVehicle(ped, false) then
+                    hasHarness()
+                    local veh = GetEntityModel(GetVehiclePedIsIn(ped, false))
+                    if seatbeltOn ~= true and IsThisModelACar(veh) then
+                        TriggerEvent("InteractSound_CL:PlayOnOne", "beltalarm", 0.6)
+                    end
                 end
             end
-         end
-    end
-end)
+        end
+    end)
+else
+    CreateThread(function()
+        while true do
+            Wait(15000)
+            if isLoggedIn then
+                local ped = PlayerPedId()
+                if IsPedInAnyVehicle(ped, false) then
+                    local veh = GetEntityModel(GetVehiclePedIsIn(ped, false))
+                    if seatbeltOn ~= true and IsThisModelACar(veh) then
+                        TriggerEvent("InteractSound_CL:PlayOnOne", "beltalarm", 0.6)
+                    end
+                end
+            end
+        end
+    end)
+end
 
 CreateThread(function()
     local isPaused = false
@@ -367,7 +629,6 @@ CreateThread(function()
                 })
             end
             isPaused = true
-
         elseif not IsPauseMenuActive() and isPaused then
             SendNUIMessage({
                 type = 'showhud',
@@ -386,7 +647,7 @@ end)
 
 local cinematic = false
 
-RegisterCommand('cinematic', function ()
+RegisterCommand('cinematic', function()
     local playerPed = PlayerPedId() -- Make sure to get the player ped
     if not cinematic then
         cinematic = true
@@ -433,6 +694,6 @@ RegisterNetEvent('hud:client:minimap', function()
     TriggerEvent('hud:client:LoadMap')
 end)
 
-RegisterCommand('resethud', function ()
+RegisterCommand('resethud', function()
     TriggerEvent('hud:client:minimap')
 end)
